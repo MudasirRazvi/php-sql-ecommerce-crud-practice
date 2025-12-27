@@ -1,6 +1,12 @@
 <?php
-$conn = mysqli_connect("localhost", "root", "1234", "e_comm");
+$host = "localhost";
+$user = "root";
+$pass = "1234";
+$dbname = "my_store_db";
 
-if(!$conn) {
-    die ("Connection Failed: " . mysqli_connect_error());
+$conn = mysqli_connect($host, $user, $pass, $dbname);
+
+if (!$conn) {
+    die("Database connection failed: " . mysqli_connect_error());
 }
+?>
