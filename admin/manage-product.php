@@ -1,78 +1,96 @@
 <?php
-include '../db.php';
-include '../middleware/auth_middleware.php';
+include "../db.php";
+include "../middleware/auth_middleware.php";
 
 admin_only();
 
-$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$id = isset($_GET['id']) ? $_GET['id'] : "";
 
-$product = [
-    'name' => '',
-    'description' => '',
-    'price' => '',
-    'category' => ''
-];
+$name = "";
+$desc = "";
+$price = "";
+$cat = "";
 
-$page_title = "Add New Product";
-
-if ($id > 0) {
-    $res = $conn->query("SELECT * FROM products WHERE id=$id");
-    if ($res->num_rows > 0) {
-        $product = $res->fetch_assoc();
-        $page_title = "Edit Product: " . htmlspecialchars($product['name']);
+if ($id != "") {
+    $id = mysqli_real_escape_string($conn, $id); // Sanitize ID
+    $res = mysqli_query($conn, "SELECT * FROM products WHERE id=$id");
+    if ($row = mysqli_fetch_assoc($res)) {
+        $name = $row['name'];
+        $desc = $row['description'];
+        $price = $row['price'];
+        $cat = $row['category'];
     }
 }
 
 if (isset($_POST['save'])) {
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $desc = mysqli_real_escape_string($conn, $_POST['desc']);
+    $price = mysqli_real_escape_string($conn, $_POST['price']);
+    $cat = mysqli_real_escape_string($conn, $_POST['cat']);
 
-    $name = $_POST['name'];
-    $desc = $_POST['description'];
-    $price = $_POST['price'];
-    $cat = $_POST['category'];
-
-    if ($id > 0) {
-        $conn->query("UPDATE products SET name='$name', description='$desc', price=$price, category='$cat' WHERE id=$id");
+    if ($id != "") {
+        mysqli_query($conn, "UPDATE products SET name='$name', description='$desc', price='$price', category='$cat' WHERE id=$id");
     } else {
-        $conn->query("INSERT INTO products (name, description, price, category) VALUES ('$name', '$desc', $price, '$cat')");
+        mysqli_query($conn, "INSERT INTO products (name, description, price, category) VALUES ('$name','$desc','$price','$cat')");
     }
 
-    header("Location: ../index.php");
+    header("Location: ../index.php"); // Redirect after save
     exit;
 }
+
+$themeClass = (isset($_COOKIE['theme']) && $_COOKIE['theme'] == 'dark') ? 'dark-mode' : '';
 ?>
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title><?php echo $page_title; ?></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo ($id != "") ? "Edit Product" : "Add Product"; ?> | E-Shop Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
-<body>
+<body class="<?php echo $themeClass; ?>">
 
-<nav>
-    <a href="../index.php">← Back to Shop</a> | 
-    <a href="dashboard.php">Admin Dashboard</a>
-</nav>
+    <div class="auth-wrapper">
+        <div class="auth-card" style="max-width: 600px;"> <!-- Product form ke liye thoda wide card -->
+            <div style="margin-bottom: 25px;">
+                <a href="../index.php" style="text-decoration: none; color: var(--text-muted); font-size: 0.9rem;">← Cancel & Go Back</a>
+                <h2 style="margin-top: 15px; text-align: left;">
+                    <?php echo ($id != "") ? "Update Product" : "Create New Product"; ?>
+                </h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Fill in the information below to <?php echo ($id != "") ? "edit" : "add"; ?> a product.</p>
+            </div>
 
-<div style="max-width:600px; margin:40px auto; padding:30px;" class="card">
-    <h2><?php echo $page_title; ?></h2>
+            <form method="POST">
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" name="name" placeholder="e.g. Wireless Headphones" value="<?php echo htmlspecialchars($name); ?>" required>
+                </div>
 
-    <form method="POST">
-        <label>Product Name</label><br>
-        <input type="text" name="name" value="<?php echo htmlspecialchars($product['name']); ?>" required><br><br>
+                <div class="form-group">
+                    <label>Category</label>
+                    <input type="text" name="cat" placeholder="e.g. Electronics" value="<?php echo htmlspecialchars($cat); ?>" required>
+                </div>
 
-        <label>Description</label><br>
-        <textarea name="description" rows="4" required><?php echo htmlspecialchars($product['description']); ?></textarea><br><br>
+                <div class="form-group">
+                    <label>Price ($)</label>
+                    <input type="number" step="0.01" name="price" placeholder="0.00" value="<?php echo htmlspecialchars($price); ?>" required>
+                </div>
 
-        <label>Price ($)</label><br>
-        <input type="number" step="0.01" name="price" value="<?php echo $product['price']; ?>" required><br><br>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="desc" rows="5" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text-main); font-family: inherit; resize: vertical;" placeholder="Write a short description about the product..."><?php echo htmlspecialchars($desc); ?></textarea>
+                </div>
 
-        <label>Category</label><br>
-        <input type="text" name="category" value="<?php echo htmlspecialchars($product['category']); ?>" placeholder="e.g. Electronics, Clothing"><br><br>
-
-        <button type="submit" name="save"><?php echo $id > 0 ? 'Update Product' : 'Add Product'; ?></button>
-        <a href="../index.php">Cancel</a>
-    </form>
-</div>
+                <div style="margin-top: 30px;">
+                    <button type="submit" name="save" class="btn-primary" style="width: 100%; padding: 14px;">
+                        <?php echo ($id != "") ? "Save Changes" : "Publish Product"; ?>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 </body>
 </html>

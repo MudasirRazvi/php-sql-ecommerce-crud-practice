@@ -1,56 +1,88 @@
 <?php
-session_start();
 include '../db.php';
+session_start();
 
 $error = "";
 
-if (isset($_POST['login'])) {
+if (isset($_SESSION['user_id'])) {
+    header("Location: ../index.php");
+    exit();
+}
 
-    $email = $_POST['email'];
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
     $password = $_POST['password'];
 
-    $result = $conn->query("SELECT * FROM users WHERE email='$email'");
+    $stmt = $conn->prepare("SELECT id, name, password, role FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    if ($result->num_rows == 1) {
-        $user = $result->fetch_assoc();
-
+    if ($user = $result->fetch_assoc()) {
         if (password_verify($password, $user['password'])) {
-
-            $_SESSION['user_id']   = $user['id'];
+            $_SESSION['user_id'] = $user['id']; // Start user session
             $_SESSION['user_name'] = $user['name'];
-            $_SESSION['role']      = $user['role'];
-
+            $_SESSION['role'] = $user['role'];
             header("Location: ../index.php");
-            exit;
-
+            exit();
         } else {
-            $error = "Invalid password!";
+            $error = "Invalid password. Please try again.";
         }
     } else {
-        $error = "User not found!";
+        $error = "No account found with this email.";
     }
 }
+
+$themeClass = (isset($_COOKIE['theme']) && $_COOKIE['theme'] == 'dark') ? 'dark-mode' : '';
 ?>
 
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | E-Shop</title>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
-<body>
-    <h2>Login</h2>
+<body class="<?php echo $themeClass; ?>">
 
-    <form method="POST">
-        Email:<br>
-        <input type="email" name="email" required><br><br>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h2>Welcome Back</h2>
+                <p style="text-align: center; color: #64748b; margin-top: -10px; font-size: 0.9rem;">Please enter your details</p>
+            </div>
+            
+            <!-- Error Alert -->
+            <?php if ($error): ?>
+                <div class="alert alert-error"><?php echo $error; ?></div>
+            <?php endif; ?>
 
-        Password:<br>
-        <input type="password" name="password" required><br><br>
+            <form action="login.php" method="POST">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="name@example.com" required>
+                </div>
 
-        <button name="login">Login</button>
-    </form>
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label style="margin-bottom: 0;">Password</label>
+                        <a href="forgot-password.php" style="font-size: 0.85rem; color: var(--primary); text-decoration: none; font-weight: 500;">Forgot password?</a>
+                    </div>
+                    <input type="password" id="password" name="password" placeholder="••••••••" required>
+                </div>
 
-    <p style="color:red;"><?php echo $error; ?></p>
-    <p><a href="register.php">Register</a></p>
+                <button type="submit" class="btn-primary">Sign In</button>
+            </form>
+
+            <div class="auth-footer">
+                Don't have an account? <a href="register.php">Create one</a>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

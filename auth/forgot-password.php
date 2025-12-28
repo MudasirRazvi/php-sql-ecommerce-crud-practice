@@ -1,49 +1,70 @@
 <?php
-session_start();
 include '../db.php';
-$message = "";
+session_start();
 
-// Form submit
-if (isset($_POST['reset'])) {
+$error = "";
+$success = "";
 
-    $email = $_POST['email'];
+$themeClass = (isset($_COOKIE['theme']) && $_COOKIE['theme'] == 'dark') ? 'dark-mode' : '';
 
-    $result = $conn->query("SELECT id FROM users WHERE email='$email'");
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
 
-    if ($result->num_rows > 0) {
+    $query = "SELECT id FROM users WHERE email = '$email'";
+    $res = $conn->query($query);
 
-        $tempPass = substr(bin2hex(random_bytes(4)), 0, 8);
-        $hashedTemp = password_hash($tempPass, PASSWORD_DEFAULT);
-
-        $conn->query("UPDATE users SET password='$hashedTemp' WHERE email='$email'");
-
-        $message = "Your temporary password is: <b style='color:red'>$tempPass</b><br>Please login and change it immediately.";
+    if ($res->num_rows > 0) {
+        $success = "Password reset instructions have been sent to your email.";
     } else {
-        $message = "Email not found.";
+        $error = "No account found with that email address.";
     }
 }
 ?>
 
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Reset Password</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password | E-Shop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
-<body>
+<body class="<?php echo $themeClass; ?>">
 
-<div style="max-width:400px; margin:50px auto; text-align:center;" class="card">
-    <h2>Reset Password</h2>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div class="auth-header" style="text-align: center; margin-bottom: 1.5rem;">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
+                <h2>Forgot Password?</h2>
+                <p style="color: #64748b; font-size: 0.9rem;">No worries, we'll send you reset instructions.</p>
+            </div>
+            
+            <?php if ($error): ?>
+                <div class="alert alert-error"><?php echo $error; ?></div>
+            <?php endif; ?>
 
-    <form method="POST">
-        <input type="email" name="email" placeholder="Enter your email" required><br><br>
-        <button name="reset">Generate Temp Password</button>
-    </form>
+            <?php if ($success): ?>
+                <div class="alert alert-success"><?php echo $success; ?></div>
+            <?php endif; ?>
 
-    <p><?php echo $message; ?></p>
+            <form method="POST">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="Enter your registered email" required>
+                </div>
 
-    <a href="login.php">Back to Login</a>
-</div>
+                <button type="submit" class="btn-primary">Send Reset Link</button>
+            </form>
+
+            <div class="auth-footer">
+                <a href="login.php" style="text-decoration: none; color: var(--primary); font-weight: 500;">
+                    ← Back to Login
+                </a>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>
