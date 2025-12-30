@@ -2,7 +2,7 @@
 include 'db.php';
 include 'middleware/auth_middleware.php';
 
-protect_page(); // Function name check karlein (protect_page ya protectPage)
+protect_page();
 
 $limit = 6; 
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -39,7 +39,7 @@ if ($cat != '') {
 if ($min_price !== '') {
     $sql .= " AND price >= ?";
     $params[] = $min_price;
-    $types .= "d"; // 'd' for double/decimal
+    $types .= "d";
 }
 if ($max_price !== '') {
     $sql .= " AND price <= ?";
@@ -96,12 +96,9 @@ $themeClass = (isset($_COOKIE['theme']) && $_COOKIE['theme'] == 'dark') ? 'dark-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
-        /* Price Inputs ko chota aur neat karne ke liye extra style */
         .price-inputs { display: flex; align-items: center; gap: 5px; background: #f1f5f9; padding: 0 10px; border-right: 1px solid #ddd; }
         .price-inputs input { width: 60px !important; padding: 5px !important; border: 1px solid #ccc !important; font-size: 12px; }
         .price-inputs span { color: #64748b; font-size: 12px; font-weight: bold; }
-        
-        /* Dark mode adjustment for price inputs */
         .dark-mode .price-inputs { background: #1e293b; border-color: #334155; }
         .dark-mode .price-inputs input { background: #0f172a; color: white; border-color: #475569; }
     </style>
