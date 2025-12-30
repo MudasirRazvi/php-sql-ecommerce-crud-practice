@@ -15,3 +15,23 @@ window.onload = function () {
         document.body.classList.add('dark-mode');
     }
 };
+
+// Function to show the popup
+function showPopup() {
+    document.getElementById('promoPopup').style.display = 'flex';
+}
+
+function closePopup() {
+    document.getElementById('promoPopup').style.display = 'none';
+}
+
+window.addEventListener('load', function() {
+    setTimeout(showPopup, 5000);
+});
+
+window.onclick = function(event) {
+    let modal = document.getElementById('promoPopup');
+    if (event.target == modal) {
+        closePopup();
+    }
+}

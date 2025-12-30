@@ -195,6 +195,18 @@ $themeClass = (isset($_COOKIE['theme']) && $_COOKIE['theme'] == 'dark') ? 'dark-
     <?php endif; ?>
 </div>
 
+<!-- Popup Modal Structure -->
+<div id="promoPopup" class="popup-overlay">
+    <div class="popup-content">
+        <span class="close-popup" onclick="closePopup()">&times;</span>
+        <div class="popup-body">
+            <h2>Special Offer!</h2>
+            <p>Get **20% OFF** on your first purchase. Use code: <strong>WELCOME20</strong></p>
+            <button class="btn-primary" onclick="closePopup()">Shop Now</button>
+        </div>
+    </div>
+</div>
+
 <script src="assets/js/script.js"></script>
 </body>
 </html>
